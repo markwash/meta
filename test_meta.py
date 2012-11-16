@@ -13,7 +13,7 @@ class TestModel(unittest.TestCase):
         self.assertIsNone(student.id)
         self.assertIsNone(student.first)
         self.assertIsNone(student.last)
-        
+
     def test_partial_init(self):
         student = self.Student(id='1234')
         self.assertEqual(student.id, '1234')

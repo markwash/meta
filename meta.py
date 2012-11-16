@@ -3,13 +3,13 @@ class Property(object):
         self.name = None
 
     def __get__(self, obj, type=None):
-        print self.name
         if not hasattr(obj, self.name):
             setattr(obj, self.name, None)
         return getattr(obj, self.name)
 
     def __set__(self, obj, value):
         setattr(obj, self.name, value)
+
 
 class Base(object):
     def __init__(self, **kwargs):
