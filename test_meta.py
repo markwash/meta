@@ -48,6 +48,44 @@ class TestModel(unittest.TestCase):
         self.assertEqual(student2.id, '2')
 
 
+class TestOriginalInitPreserved(unittest.TestCase):
+    class Foo(meta.Base):
+        bar = meta.Property()
+
+        def __init__(self, baz=None):
+            self.baz = baz
+
+    def test_no_arg_init(self):
+        foo = self.Foo()
+        self.assertIsNone(foo.bar)
+        self.assertIsNone(foo.baz)
+
+    def test_model_kwarg_init(self):
+        foo = self.Foo(bar='barbarbar')
+        self.assertEqual(foo.bar, 'barbarbar')
+        self.assertIsNone(foo.baz)
+
+    def test_regular_kwarg_init(self):
+        foo = self.Foo(baz='baaaaz!')
+        self.assertIsNone(foo.bar)
+        self.assertEqual(foo.baz, 'baaaaz!')
+
+    def test_regular_positional_arg_init(self):
+        foo = self.Foo('baaaaz!')
+        self.assertIsNone(foo.bar)
+        self.assertEqual(foo.baz, 'baaaaz!')
+
+    def test_full_init_with_kwargs(self):
+        foo = self.Foo(bar='moes', baz='sheep')
+        self.assertEqual(foo.bar, 'moes')
+        self.assertEqual(foo.baz, 'sheep')
+
+    def test_full_init_with_positional(self):
+        foo = self.Foo('sheep', bar='moes')
+        self.assertEqual(foo.bar, 'moes')
+        self.assertEqual(foo.baz, 'sheep')
+
+
 class TestInheritance(unittest.TestCase):
 
     class IDObject(meta.Base):
