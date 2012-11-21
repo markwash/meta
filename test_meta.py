@@ -46,3 +46,19 @@ class TestModel(unittest.TestCase):
         student2.id = '2'
         self.assertEqual(student1.id, '1')
         self.assertEqual(student2.id, '2')
+
+
+class TestInheritance(unittest.TestCase):
+
+    class IDObject(meta.Base):
+        id = meta.Property()
+
+    class Student(IDObject):
+        first = meta.Property()
+        last = meta.Property()
+
+    def test_create_student(self):
+        student = self.Student()
+        self.assertIsNone(student.id)
+        self.assertIsNone(student.first)
+        self.assertIsNone(student.last)
