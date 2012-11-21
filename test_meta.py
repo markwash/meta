@@ -57,8 +57,35 @@ class TestInheritance(unittest.TestCase):
         first = meta.Property()
         last = meta.Property()
 
-    def test_create_student(self):
+    def test_create_derived(self):
         student = self.Student()
         self.assertIsNone(student.id)
         self.assertIsNone(student.first)
         self.assertIsNone(student.last)
+
+    def test_create_derived_with_derived_params(self):
+        student = self.Student(first='Malcolm', last='Reynolds')
+        self.assertIsNone(student.id)
+        self.assertEqual(student.first, 'Malcolm')
+        self.assertEqual(student.last, 'Reynolds')
+
+    def test_create_derived_with_base_params(self):
+        student = self.Student(id='abcd')
+        self.assertEqual(student.id, 'abcd')
+        self.assertIsNone(student.first)
+        self.assertIsNone(student.last)
+
+    def test_create_derived_with_all_params(self):
+        student = self.Student(id='abcd', first='Malcolm', last='Reynolds')
+        self.assertEqual(student.id, 'abcd')
+        self.assertEqual(student.first, 'Malcolm')
+        self.assertEqual(student.last, 'Reynolds')
+
+    def test_set_params(self):
+        student = self.Student()
+        student.id = 'efgh'
+        student.first = 'Mickey'
+        student.last = 'Rooney'
+        self.assertEqual(student.id, 'efgh')
+        self.assertEqual(student.first, 'Mickey')
+        self.assertEqual(student.last, 'Rooney')
