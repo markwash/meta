@@ -19,37 +19,47 @@ class Property(object):
 class ModelMeta(type):
 
     def __new__(klass, name, bases, cls_dict):
-        properties = klass._find_model_properties(cls_dict)
-        klass._plug_in_properties(properties)
-        init = klass._transform_init(properties, cls_dict.get('__init__'))
-        cls_dict['__init__'] = init
+        klass._plug_in_properties(bases, cls_dict)
+        klass._transform_init(bases, cls_dict)
         return super(ModelMeta, klass).__new__(klass, name, bases, cls_dict)
 
     @classmethod
-    def _find_model_properties(klass, cls_dict):
-        return dict([(name, value) for name, value in cls_dict.items()
-                     if isinstance(value, Property)])
-
-    @classmethod
-    def _plug_in_properties(klass, properties):
-        for name, prop in properties.items():
+    def _plug_in_properties(klass, bases, cls_dict):
+        for name, prop in cls_dict.items():
+            if not isinstance(prop, Property):
+                continue
             if prop.name is None:
                 prop.name = name
 
     @classmethod
-    def _transform_init(klass, properties, original_init=None):
-        def transformed_init(self, *args, **kwargs):
-            self._model = {}
-            for name, prop in properties.items():
-                self._model[name] = {}
+    def _transform_init(klass, bases, cls_dict):
+        original_init = cls_dict.get('__init__')
+
+        def _init_model_properties(self, kwargs):
+            for name, prop in cls_dict.items():
+                if not isinstance(prop, Property):
+                    continue
+                if not name in self._model:
+                    self._model[name] = {}
                 if name in kwargs:
                     setattr(self, name, kwargs.pop(name))
+        
+        cls_dict['_init_model_properties'] = _init_model_properties
+                
+        def transformed_init(self, *args, **kwargs):
+            if not hasattr(self, '_model'):
+                self._model = {}
+            self._init_model_properties(kwargs)
+            for base in bases:
+                if hasattr(base, '_init_model_properties'):
+                    base._init_model_properties(self, kwargs)
             if original_init is not None:
                 original_init(self, *args, **kwargs)
             else:
                 if len(args) > 0 or len(kwargs) > 0:
                     raise TypeError('unexpected arguments')
-        return transformed_init
+        
+        cls_dict['__init__'] = transformed_init
 
 
 class Base(object):
