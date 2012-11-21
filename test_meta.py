@@ -30,6 +30,15 @@ class TestModel(unittest.TestCase):
         with self.assertRaises(TypeError):
             self.Student(id='123', gpa=3.7)
 
+    def test_setting_attributes(self):
+        student = self.Student(id='123')
+        student.id = '456'
+        student.first = 'John'
+        student.last = 'Johnson'
+        self.assertEqual(student.id, '456')
+        self.assertEqual(student.first, 'John')
+        self.assertEqual(student.last, 'Johnson')
+
     def test_attributes_are_not_static(self):
         student1 = self.Student()
         student2 = self.Student()
