@@ -127,3 +127,41 @@ class TestInheritance(unittest.TestCase):
         self.assertEqual(student.id, 'efgh')
         self.assertEqual(student.first, 'Mickey')
         self.assertEqual(student.last, 'Rooney')
+
+
+class TestInitMethodsAndInheritance(unittest.TestCase):
+
+    class Base(meta.Base):
+        base_prop = meta.Property()
+
+        def __init__(self, base_attr):
+            self.base_attr = base_attr
+
+    class Derived(Base):
+        derived_prop = meta.Property()
+
+        def __init__(self, base_attr, derived_attr):
+            super(self.__class__, self).__init__(base_attr)
+            self.derived_attr = derived_attr
+
+    def test_positional_attr_init(self):
+        d = self.Derived('ba', 'da')
+        self.assertIsNone(d.base_prop)
+        self.assertIsNone(d.derived_prop)
+        self.assertEqual(d.base_attr, 'ba')
+        self.assertEqual(d.derived_attr, 'da')
+
+    def test_full_init(self):
+        d = self.Derived(base_attr='ba', base_prop='bp',
+                         derived_attr='da', derived_prop='dp')
+        self.assertEqual(d.base_attr, 'ba')
+        self.assertEqual(d.base_prop, 'bp')
+        self.assertEqual(d.derived_attr, 'da')
+        self.assertEqual(d.derived_prop, 'dp')
+        
+    def test_full_init_with_positional_args(self):
+        d = self.Derived('ba', 'da', base_prop='bp', derived_prop='dp')
+        self.assertEqual(d.base_attr, 'ba')
+        self.assertEqual(d.base_prop, 'bp')
+        self.assertEqual(d.derived_attr, 'da')
+        self.assertEqual(d.derived_prop, 'dp')
