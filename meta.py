@@ -5,7 +5,11 @@ class Property(object):
     def _lookup_storage(self, obj):
         return obj._model[self.name]
 
-    def __get__(self, obj, type=None):
+    def __get__(self, obj, owner=None):
+        if obj is None and owner is not None:
+            # This happens if you access the property as a class rather
+            # than instance attribute.
+            return self
         storage = self._lookup_storage(obj)
         if not 'value' in storage:
             return None
@@ -70,7 +74,7 @@ class PropertyProxy(object):
     def __init__(self, name):
         self.name = name
 
-    def __get__(self, obj, type=None):
+    def __get__(self, obj, owner=None):
         return getattr(obj.wrapped, self.name)
 
     def __set__(self, obj, value):
@@ -81,7 +85,7 @@ class CallableProxy(object):
     def __init__(self, name):
         self.name = name
 
-    def __get__(self, obj, type=None):
+    def __get__(self, obj, owner=None):
         return getattr(obj.wrapped, self.name)
 
 
