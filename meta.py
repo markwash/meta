@@ -64,3 +64,53 @@ class ModelMeta(type):
 
 class Base(object):
     __metaclass__ = ModelMeta
+
+
+class PropertyProxy(object):
+    def __init__(self, name):
+        self.name = name
+
+    def __get__(self, obj, type=None):
+        return getattr(obj.wrapped, self.name)
+
+    def __set__(self, obj, value):
+        setattr(obj.wrapped, self.name, value)
+
+
+class CallableProxy(object):
+    def __init__(self, name):
+        self.name = name
+
+    def __get__(self, obj, type=None):
+        return getattr(obj.wrapped, self.name)
+
+
+class ProxyMeta(type):
+
+    def __new__(klass, name, bases, cls_dict):
+        klass.load_proxies(name, bases, cls_dict)
+        klass.transform_init(name, bases, cls_dict)
+        return super(ProxyMeta, klass).__new__(klass, name, bases, cls_dict)
+
+    @classmethod
+    def load_proxies(klass, name, bases, cls_dict):
+        model = cls_dict['wrapped']
+        for name, prop in model.__dict__.items():
+            if isinstance(prop, Property):
+                cls_dict[name] = PropertyProxy(name)
+            elif callable(prop) and not name.startswith('__'):
+                if name not in cls_dict:
+                    cls_dict[name] = CallableProxy(name)
+
+    @classmethod
+    def transform_init(klass, name, bases, cls_dict):
+        original_init = cls_dict.get('__init__')
+        def init(self, wrapped, *args, **kwargs):
+            self.wrapped = wrapped
+            if original_init is not None:
+                original_init(self, *args, **kwargs)
+        cls_dict['__init__'] = init
+
+class Proxy(object):
+    __metaclass__ = ProxyMeta
+    wrapped = Base

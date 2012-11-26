@@ -165,3 +165,46 @@ class TestInitMethodsAndInheritance(unittest.TestCase):
         self.assertEqual(d.base_prop, 'bp')
         self.assertEqual(d.derived_attr, 'da')
         self.assertEqual(d.derived_prop, 'dp')
+
+
+class Person(meta.Base):
+    name = meta.Property()
+
+    def greet(self):
+        return 'My name is %s.' % self.name
+
+
+class TestProxy(unittest.TestCase):
+    class PersonProxy(meta.Proxy):
+        wrapped = Person
+
+    def test_property_get(self):
+        person = Person(name='Fred')
+        proxy = self.PersonProxy(person)
+        self.assertEqual(proxy.name, 'Fred')
+
+    def test_property_set(self):
+        person = Person()
+        proxy = self.PersonProxy(person)
+        proxy.name = 'Wilma'
+        self.assertEqual(proxy.name, 'Wilma')
+        self.assertEqual(person.name, 'Wilma')
+
+    def test_method_call(self):
+        person = Person(name='Henry')
+        proxy = self.PersonProxy(person)
+        greeting = proxy.greet()
+        self.assertEqual(greeting, 'My name is Henry.')
+
+
+class TestProxyMethodReplacement(unittest.TestCase):
+    class PersonProxy(meta.Proxy):
+        wrapped = Person
+
+        def greet(self):
+            return 'Hello, World! %s' % self.wrapped.greet()
+
+    def test_replaced_method(self):
+        person = Person(name='Larry')
+        proxy = self.PersonProxy(person)
+        self.assertEquals(proxy.greet(), 'Hello, World! My name is Larry.')
