@@ -1,12 +1,12 @@
 import unittest
-import meta
+import model
 
 
 class TestModel(unittest.TestCase):
-    class Student(meta.Base):
-        id = meta.Property()
-        first = meta.Property()
-        last = meta.Property()
+    class Student(model.Base):
+        id = model.Property()
+        first = model.Property()
+        last = model.Property()
 
     def test_no_init(self):
         student = self.Student()
@@ -49,8 +49,8 @@ class TestModel(unittest.TestCase):
 
 
 class TestOriginalInitPreserved(unittest.TestCase):
-    class Foo(meta.Base):
-        bar = meta.Property()
+    class Foo(model.Base):
+        bar = model.Property()
 
         def __init__(self, baz=None):
             self.baz = baz
@@ -88,12 +88,12 @@ class TestOriginalInitPreserved(unittest.TestCase):
 
 class TestInheritance(unittest.TestCase):
 
-    class IDObject(meta.Base):
-        id = meta.Property()
+    class IDObject(model.Base):
+        id = model.Property()
 
     class Student(IDObject):
-        first = meta.Property()
-        last = meta.Property()
+        first = model.Property()
+        last = model.Property()
 
     def test_create_derived(self):
         student = self.Student()
@@ -131,14 +131,14 @@ class TestInheritance(unittest.TestCase):
 
 class TestInitMethodsAndInheritance(unittest.TestCase):
 
-    class Base(meta.Base):
-        base_prop = meta.Property()
+    class Base(model.Base):
+        base_prop = model.Property()
 
         def __init__(self, base_attr):
             self.base_attr = base_attr
 
     class Derived(Base):
-        derived_prop = meta.Property()
+        derived_prop = model.Property()
 
         def __init__(self, base_attr, derived_attr):
             super(self.__class__, self).__init__(base_attr)
@@ -167,15 +167,15 @@ class TestInitMethodsAndInheritance(unittest.TestCase):
         self.assertEqual(d.derived_prop, 'dp')
 
 
-class Person(meta.Base):
-    name = meta.Property()
+class Person(model.Base):
+    name = model.Property()
 
     def greet(self):
         return 'My name is %s.' % self.name
 
 
 class TestProxy(unittest.TestCase):
-    class PersonProxy(meta.Proxy):
+    class PersonProxy(model.Proxy):
         wrapped = Person
 
     def test_property_get(self):
@@ -198,7 +198,7 @@ class TestProxy(unittest.TestCase):
 
 
 class TestProxyMethodReplacement(unittest.TestCase):
-    class PersonProxy(meta.Proxy):
+    class PersonProxy(model.Proxy):
         wrapped = Person
 
         def greet(self):
@@ -215,10 +215,10 @@ class TestException(Exception):
 
 
 class TestProxyAttributeReplacement(unittest.TestCase):
-    class PersonProxy(meta.Proxy):
+    class PersonProxy(model.Proxy):
         wrapped = Person
 
-        name = meta.PropertyProxy()
+        name = model.PropertyProxy()
 
         @name.setter
         def set_name(self, name):
