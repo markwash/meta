@@ -208,3 +208,32 @@ class TestProxyMethodReplacement(unittest.TestCase):
         person = Person(name='Larry')
         proxy = self.PersonProxy(person)
         self.assertEquals(proxy.greet(), 'Hello, World! My name is Larry.')
+
+
+class TestException(Exception):
+    pass
+
+
+class TestProxyAttributeReplacement(unittest.TestCase):
+    class PersonProxy(meta.Proxy):
+        wrapped = Person
+
+        name = meta.PropertyProxy()
+
+        @name.setter
+        def set_name(self, name):
+            if not name.istitle():
+                raise TestException()
+            self.wrapped.name = name
+
+    def test_replaced_setter(self):
+        person = Person()
+        proxy = self.PersonProxy(person)
+        with self.assertRaises(TestException):
+            proxy.name = 'seamus'
+
+    def test_underlying_setter_unaffected(self):
+        person = Person()
+        proxy = self.PersonProxy(person)
+        person.name = 'seamus'
+        self.assertEquals(proxy.name, 'seamus')

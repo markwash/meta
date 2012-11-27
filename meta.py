@@ -71,14 +71,29 @@ class Base(object):
 
 
 class PropertyProxy(object):
-    def __init__(self, name):
+    def __init__(self, name=None):
         self.name = name
+        self._setter = None
+        self._getter = None
 
     def __get__(self, obj, owner=None):
+        if self._getter is not None:
+            return self._getter(obj)
         return getattr(obj.wrapped, self.name)
 
     def __set__(self, obj, value):
+        if self._setter is not None:
+            self._setter(obj, value)
         setattr(obj.wrapped, self.name, value)
+
+    def setter(self, method):
+        """Decorator-style __set__ override"""
+        self._setter = method
+        return method
+
+    def getter(self, method):
+        """Decorator-style __get__ override"""
+        self._getter = method
 
 
 class CallableProxy(object):
@@ -92,19 +107,27 @@ class CallableProxy(object):
 class ProxyMeta(type):
 
     def __new__(klass, name, bases, cls_dict):
+        klass.plug_in_properties(name, bases, cls_dict)
         klass.load_proxies(name, bases, cls_dict)
         klass.transform_init(name, bases, cls_dict)
         return super(ProxyMeta, klass).__new__(klass, name, bases, cls_dict)
 
     @classmethod
+    def plug_in_properties(klass, name, bases, cls_dict):
+        for name, prop in cls_dict.items():
+            if isinstance(prop, PropertyProxy) and prop.name is None:
+                prop.name = name
+
+    @classmethod
     def load_proxies(klass, name, bases, cls_dict):
         model = cls_dict['wrapped']
         for name, prop in model.__dict__.items():
+            if name in cls_dict:
+                continue
             if isinstance(prop, Property):
                 cls_dict[name] = PropertyProxy(name)
             elif callable(prop) and not name.startswith('__'):
-                if name not in cls_dict:
-                    cls_dict[name] = CallableProxy(name)
+                cls_dict[name] = CallableProxy(name)
 
     @classmethod
     def transform_init(klass, name, bases, cls_dict):
@@ -114,6 +137,7 @@ class ProxyMeta(type):
             if original_init is not None:
                 original_init(self, *args, **kwargs)
         cls_dict['__init__'] = init
+
 
 class Proxy(object):
     __metaclass__ = ProxyMeta
