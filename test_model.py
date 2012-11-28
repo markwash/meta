@@ -214,7 +214,7 @@ class TestException(Exception):
     pass
 
 
-class TestProxyAttributeReplacement(unittest.TestCase):
+class TestProxyAttributeReplaceSet(unittest.TestCase):
     class PersonProxy(model.Proxy):
         wrapped = Person
 
@@ -237,3 +237,27 @@ class TestProxyAttributeReplacement(unittest.TestCase):
         proxy = self.PersonProxy(person)
         person.name = 'seamus'
         self.assertEquals(proxy.name, 'seamus')
+
+
+class TestProxyAttributeReplaceGet(unittest.TestCase):
+    class PersonProxy(model.Proxy):
+        wrapped = Person
+
+        name = model.PropertyProxy()
+
+        @name.getter
+        def get_name(self):
+            return self.wrapped.name.title()
+
+    def test_custom_getter_used(self):
+        person = Person(name='morgan freeman')
+        proxy = self.PersonProxy(person)
+        self.assertEqual(person.name, 'morgan freeman')
+        self.assertEqual(proxy.name, 'Morgan Freeman')
+
+    def test_default_setter_works(self):
+        person = Person()
+        proxy = self.PersonProxy(person)
+        proxy.name = 'tim robbins'
+        self.assertEqual(person.name, 'tim robbins')
+        self.assertEqual(proxy.name, 'Tim Robbins')
