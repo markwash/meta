@@ -261,3 +261,16 @@ class TestProxyAttributeReplaceGet(unittest.TestCase):
         proxy.name = 'tim robbins'
         self.assertEqual(person.name, 'tim robbins')
         self.assertEqual(proxy.name, 'Tim Robbins')
+
+
+class TestProxyWithSpecialInit(unittest.TestCase):
+    class PersonProxy(model.Proxy):
+        wrapped = Person
+
+        def __init__(self, wrapped, extra):
+            self.extra = extra
+
+    def test_initialization(self):
+        person = Person(name='Sue')
+        proxy = self.PersonProxy(person, 'how do you do')
+        self.assertEqual(proxy.extra, 'how do you do')

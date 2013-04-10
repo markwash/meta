@@ -135,7 +135,7 @@ class ProxyMeta(type):
         def init(self, wrapped, *args, **kwargs):
             self.wrapped = wrapped
             if original_init is not None:
-                original_init(self, *args, **kwargs)
+                original_init(self, wrapped, *args, **kwargs)
         cls_dict['__init__'] = init
 
 
